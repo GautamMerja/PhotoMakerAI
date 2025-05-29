@@ -1,0 +1,174 @@
+Here’s a complete AI CLI project plan tailored for Replit — including structure, setup instructions, and commands — so you can easily copy-paste or share it to someone who wants to run and test the CLI version of your AI without needing GitHub login or deep tech knowledge.
+
+
+---
+
+🧠 AI CLI Tool – Replit Execution Plan
+
+📌 Objective:
+
+Run a basic AI tool on Replit that can perform:
+
+Face detection
+
+Background removal
+
+CLI-based interaction
+
+Fully offline (ONNX models if needed)
+
+
+
+---
+
+📁 Project Folder Structure:
+
+ai_cli_project/
+├── ai_tool.py                # Main CLI script
+├── utils/
+│   ├── face_utils.py         # Face recognition logic
+│   ├── background_utils.py   # Background removal logic
+│   └── image_utils.py        # Common image I/O
+├── models/
+│   └── u2net.onnx            # Pre-downloaded ONNX model for rembg (optional)
+├── assets/
+│   └── sample.jpg            # Sample image to test with
+├── requirements.txt
+└── README.md
+
+
+---
+
+📦 requirements.txt
+
+face_recognition==1.3.0
+dlib==19.24.0
+opencv-python==4.8.0.76
+Pillow==10.0.0
+rembg==2.0.50
+
+⚠️ Dlib and rembg might fail in Replit's limited environment. In that case, fallback plan:
+
+Comment out those features
+
+Use OpenCV only for testing
+
+
+
+---
+
+🧠 ai_tool.py – Main CLI Script
+
+import argparse
+from utils.face_utils import detect_faces
+from utils.background_utils import remove_background
+
+def main():
+    parser = argparse.ArgumentParser(description="AI CLI Tool")
+    parser.add_argument("--mode", choices=["detect", "rembg"], required=True)
+    parser.add_argument("--image", required=True)
+
+    args = parser.parse_args()
+
+    if args.mode == "detect":
+        detect_faces(args.image)
+    elif args.mode == "rembg":
+        remove_background(args.image)
+
+if __name__ == "__main__":
+    main()
+
+
+---
+
+⚙️ Replit Setup Instructions
+
+1. Go to https://replit.com
+
+
+2. Create new Repl → Choose Python template
+
+
+3. Upload the above folder manually (or copy-paste files)
+
+
+4. In Replit’s shell:
+
+pip install -r requirements.txt
+python ai_tool.py --mode detect --image assets/sample.jpg
+
+
+
+
+---
+
+🧠 face_utils.py (inside utils/)
+
+import face_recognition
+import cv2
+
+def detect_faces(image_path):
+    image = face_recognition.load_image_file(image_path)
+    locations = face_recognition.face_locations(image)
+
+    print(f"[INFO] Detected {len(locations)} face(s).")
+    for i, (top, right, bottom, left) in enumerate(locations):
+        print(f"Face {i+1}: Top={top}, Right={right}, Bottom={bottom}, Left={left}")
+
+
+---
+
+🧠 background_utils.py (inside utils/)
+
+from rembg import remove
+from PIL import Image
+
+def remove_background(image_path):
+    input_image = Image.open(image_path)
+    output_image = remove(input_image)
+    output_image.save("output.png")
+    print("[INFO] Background removed. Saved as output.png")
+
+
+---
+
+🧠 image_utils.py (Optional – For future utilities)
+
+from PIL import Image
+
+def resize_image(image_path, output_path, size=(512, 512)):
+    img = Image.open(image_path)
+    img = img.resize(size)
+    img.save(output_path)
+
+
+---
+
+✅ What to Share with Others
+
+Send them the full folder OR zip file with:
+
+ai_tool.py
+
+utils/ folder
+
+requirements.txt
+
+A sample image in assets/
+
+
+And tell them to:
+
+1. Upload it to Replit
+
+
+2. Run this command in the shell:
+
+python ai_tool.py --mode detect --image assets/sample.jpg
+
+
+
+
+---
+
+Want me to package this folder structure with dummy/sample files and give you a .zip to share?
