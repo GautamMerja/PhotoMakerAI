@@ -29,7 +29,7 @@ def setup_logging():
 def check_dependencies():
     """Check if all required dependencies are available"""
     required_modules = [
-        'PIL', 'cv2', 'face_recognition', 'rembg', 'numpy'
+        'PIL', 'cv2', 'rembg', 'numpy'
     ]
     
     missing_modules = []
@@ -42,7 +42,7 @@ def check_dependencies():
     if missing_modules:
         error_msg = f"Missing required modules: {', '.join(missing_modules)}\n"
         error_msg += "Please install them using:\n"
-        error_msg += "pip install pillow opencv-python face-recognition rembg numpy"
+        error_msg += "pip install pillow opencv-python rembg numpy"
         messagebox.showerror("Missing Dependencies", error_msg)
         return False
     

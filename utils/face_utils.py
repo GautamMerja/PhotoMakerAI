@@ -3,7 +3,6 @@ Face detection and alignment utilities
 """
 
 import cv2
-import face_recognition
 import numpy as np
 from PIL import Image, ImageDraw
 import logging
@@ -11,16 +10,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 class FaceDetector:
-    """Face detection and alignment class"""
+    """Face detection and alignment class using OpenCV"""
     
     def __init__(self):
         self.face_locations = []
-        self.face_encodings = []
         self.face_landmarks = []
+        # Load OpenCV's pre-trained face detection model
+        self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
     
     def detect_faces(self, image_path):
         """
-        Detect faces in an image
+        Detect faces in an image using OpenCV
         
         Args:
             image_path (str): Path to the image file
@@ -29,17 +29,41 @@ class FaceDetector:
             tuple: (face_locations, face_landmarks, processed_image)
         """
         try:
-            # Load image
-            image = face_recognition.load_image_file(image_path)
+            # Load image with OpenCV
+            cv_image = cv2.imread(image_path)
+            if cv_image is None:
+                raise ValueError(f"Could not load image: {image_path}")
             
-            # Find face locations and landmarks
-            self.face_locations = face_recognition.face_locations(image, model="hog")
-            self.face_landmarks = face_recognition.face_landmarks(image, self.face_locations)
+            # Convert to RGB for PIL
+            rgb_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+            
+            # Convert to grayscale for face detection
+            gray_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2GRAY)
+            
+            # Detect faces
+            faces = self.face_cascade.detectMultiScale(
+                gray_image, 
+                scaleFactor=1.1, 
+                minNeighbors=5, 
+                minSize=(30, 30)
+            )
+            
+            # Convert OpenCV format (x, y, w, h) to face_recognition format (top, right, bottom, left)
+            self.face_locations = []
+            for (x, y, w, h) in faces:
+                top = y
+                right = x + w
+                bottom = y + h
+                left = x
+                self.face_locations.append((top, right, bottom, left))
+            
+            # No landmarks for OpenCV detection (simplified)
+            self.face_landmarks = [{}] * len(self.face_locations)
             
             logger.info(f"Detected {len(self.face_locations)} face(s) in image")
             
             # Convert to PIL Image for processing
-            pil_image = Image.fromarray(image)
+            pil_image = Image.fromarray(rgb_image)
             
             return self.face_locations, self.face_landmarks, pil_image
             
