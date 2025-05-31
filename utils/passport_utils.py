@@ -14,7 +14,7 @@ class PassportPhotoFormatter:
     def __init__(self):
         self.formats = PassportFormats()
     
-    def format_passport_photo(self, image, format_name, face_location=None):
+    def format_passport_photo(self, image, format_name, face_location=None, face_percentage=65.0):
         """
         Format image as passport photo
         
@@ -22,6 +22,7 @@ class PassportPhotoFormatter:
             image (PIL.Image): Input image
             format_name (str): Passport format name
             face_location (tuple): Face location for alignment
+            face_percentage (float): Percentage of photo height the face should occupy
             
         Returns:
             PIL.Image: Formatted passport photo
@@ -37,7 +38,7 @@ class PassportPhotoFormatter:
             
             # Crop to correct aspect ratio first
             target_ratio = width_px / height_px
-            cropped_image = self._crop_to_passport_ratio(image, target_ratio, face_location)
+            cropped_image = self._crop_to_passport_ratio(image, target_ratio, face_location, face_percentage)
             
             # Resize to exact dimensions
             formatted_image = cropped_image.resize((width_px, height_px), Image.Resampling.LANCZOS)
@@ -45,21 +46,22 @@ class PassportPhotoFormatter:
             # Apply passport photo guidelines
             formatted_image = self._apply_passport_guidelines(formatted_image, format_specs)
             
-            logger.info(f"Formatted image for {format_name} passport photo")
+            logger.info(f"Formatted image for {format_name} passport photo with {face_percentage}% face size")
             return formatted_image
             
         except Exception as e:
             logger.error(f"Error formatting passport photo: {str(e)}")
             raise
     
-    def _crop_to_passport_ratio(self, image, target_ratio, face_location=None):
+    def _crop_to_passport_ratio(self, image, target_ratio, face_location=None, face_percentage=65.0):
         """
-        Crop image to passport photo ratio, considering face position
+        Crop image to passport photo ratio with face percentage positioning
         
         Args:
             image (PIL.Image): Input image
             target_ratio (float): Target aspect ratio
             face_location (tuple): Face location (top, right, bottom, left)
+            face_percentage (float): Percentage of photo height the face should occupy
             
         Returns:
             PIL.Image: Cropped image
@@ -69,28 +71,46 @@ class PassportPhotoFormatter:
             current_ratio = width / height
             
             if face_location:
-                # Use face location to guide cropping
+                # Use face location to guide cropping with proper face positioning
                 top, right, bottom, left = face_location
                 face_center_x = (left + right) // 2
                 face_center_y = (top + bottom) // 2
+                face_width = right - left
+                face_height = bottom - top
                 
                 if current_ratio > target_ratio:
                     # Image is too wide, crop sides around face
                     new_width = int(height * target_ratio)
                     
-                    # Center crop around face
+                    # Center crop around face horizontally
                     left_crop = max(0, min(face_center_x - new_width // 2, width - new_width))
                     cropped_image = image.crop((left_crop, 0, left_crop + new_width, height))
                 else:
-                    # Image is too tall, crop top/bottom with face in upper third
+                    # Image is too tall, crop top/bottom with face positioned properly
                     new_height = int(width / target_ratio)
                     
-                    # Position face in upper third of photo
-                    desired_face_y = new_height // 3
-                    top_crop = max(0, min(face_center_y - desired_face_y, height - new_height))
+                    # Use the face percentage parameter from user input
+                    desired_face_height_percentage = face_percentage / 100.0  # Convert percentage to decimal
+                    desired_face_top_percentage = 0.25  # Face starts at 25% from top
+                    
+                    # Calculate desired face dimensions in new crop
+                    desired_face_height_in_crop = new_height * desired_face_height_percentage
+                    scale_factor = desired_face_height_in_crop / face_height
+                    
+                    # If face needs to be scaled, adjust crop size accordingly
+                    if scale_factor < 1:
+                        # Face is too big, need to include more area
+                        new_height = int(face_height / desired_face_height_percentage)
+                        new_height = min(new_height, height)  # Don't exceed original height
+                    
+                    # Position crop so face is at desired location
+                    desired_face_top_in_crop = new_height * desired_face_top_percentage
+                    top_crop = max(0, min(face_center_y - int(desired_face_top_in_crop + face_height/2), 
+                                         height - new_height))
+                    
                     cropped_image = image.crop((0, top_crop, width, top_crop + new_height))
             else:
-                # Standard center crop
+                # Standard center crop when no face detected
                 if current_ratio > target_ratio:
                     new_width = int(height * target_ratio)
                     left_crop = (width - new_width) // 2

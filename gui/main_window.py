@@ -344,15 +344,16 @@ class PassportPhotoApp:
             self.update_status("Formatting passport photo...")
             self.show_progress(True)
             
-            # Get format from control panel
+            # Get format and face percentage from control panel
             format_name = self.control_panel.get_passport_format()
+            face_percentage = self.control_panel.get_face_percentage()
             
             # Use first face location if available
             face_location = self.face_locations[0] if self.face_locations else None
             
             # Format passport photo
             self.passport_image = self.passport_formatter.format_passport_photo(
-                source_image, format_name, face_location
+                source_image, format_name, face_location, face_percentage
             )
             
             # Display in passport panel

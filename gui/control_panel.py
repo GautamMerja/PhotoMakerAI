@@ -95,6 +95,25 @@ class ControlPanel(ttk.Frame):
                                         state="readonly", width=18)
         self.format_combo.pack(fill=tk.X, pady=2)
         
+        # Face percentage control
+        ttk.Label(passport_frame, text="Face Size (%):").pack(fill=tk.X, pady=(5, 0))
+        
+        face_frame = ttk.Frame(passport_frame)
+        face_frame.pack(fill=tk.X, pady=2)
+        
+        self.face_percentage_var = tk.DoubleVar(value=65.0)
+        self.face_percentage_scale = ttk.Scale(face_frame, from_=50.0, to=80.0, 
+                                             variable=self.face_percentage_var, 
+                                             orient=tk.HORIZONTAL)
+        self.face_percentage_scale.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        self.face_percentage_label = ttk.Label(face_frame, text="65%", width=5)
+        self.face_percentage_label.pack(side=tk.RIGHT, padx=(5, 0))
+        
+        # Update label when scale changes
+        self.face_percentage_scale.bind("<Motion>", self.on_face_percentage_changed)
+        self.face_percentage_scale.bind("<ButtonRelease-1>", self.on_face_percentage_changed)
+        
         # Format passport photo button
         ttk.Button(passport_frame, text="Format Photo", command=self.app.format_passport_photo, width=20).pack(fill=tk.X, pady=2)
         
@@ -163,6 +182,11 @@ class ControlPanel(ttk.Frame):
             info_text = f"{format_info['width_mm']}x{format_info['height_mm']}mm, {format_info['dpi']} DPI"
             self.format_info_label.config(text=info_text)
     
+    def on_face_percentage_changed(self, event=None):
+        """Handle face percentage scale change"""
+        percentage = int(self.face_percentage_var.get())
+        self.face_percentage_label.config(text=f"{percentage}%")
+    
     def on_image_loaded(self):
         """Handle image loaded event"""
         self.processing_status_label.config(text="Image loaded", foreground="blue")
@@ -200,3 +224,7 @@ class ControlPanel(ttk.Frame):
     def get_selected_printer(self):
         """Get selected printer"""
         return self.printer_var.get() if self.printer_var.get() else None
+    
+    def get_face_percentage(self):
+        """Get selected face percentage"""
+        return self.face_percentage_var.get()

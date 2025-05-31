@@ -58,14 +58,14 @@ class PassportFormats:
                 "description": "Australian Passport photo - 35x45mm"
             },
             "Indian Passport": {
-                "width_mm": 35,
-                "height_mm": 35,
-                "width_inch": 1.38,
-                "height_inch": 1.38,
-                "width_px": 413,
-                "height_px": 413,
+                "width_mm": 31.75,
+                "height_mm": 41.91,
+                "width_inch": 1.25,
+                "height_inch": 1.65,
+                "width_px": 375,
+                "height_px": 495,
                 "dpi": 300,
-                "description": "Indian Passport photo - 35x35mm"
+                "description": "Indian Passport photo - 1.25x1.65 inches"
             },
             "Chinese Passport": {
                 "width_mm": 33,
